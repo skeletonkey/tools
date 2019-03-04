@@ -42,6 +42,10 @@ run [view] [additional run options]
     anything else provided (other than 'view') will be pasted into the run command:
       IE: run -p 3000:3000
         docker run -it --rm -p 3000:3000 --name my_<docker name> -v <dir>/code:/code <docker name> /bin/bash
+
+
+stop
+    stops the docker container - if it's running
 ";
 }
 
@@ -54,6 +58,7 @@ elsif ($cmd eq 'build')  { build();                 }
 elsif ($cmd eq 'exec')   { connect_to();            }
 elsif ($cmd eq 'daemon') { daemon();                }
 elsif ($cmd eq 'run')    { run();                   }
+elsif ($cmd eq 'stop')   { stop();                  }
 else  { die "Unrecognized command!\n" . usage() . "\n"; }
 
 sub create {
@@ -111,6 +116,22 @@ sub run {
         system("docker run -it --rm $extra_args --name $docker_name -v $ENV{PWD}/code:/code $image_name /bin/bash");
     }
 }
+
+sub stop {
+    my $image_name  = get_name();
+    my $docker_name = "my_$image_name";
+
+    my $process_count = `docker ps | grep -c $docker_name`;
+    chomp($process_count);
+
+    if ($process_count > 0) {
+        system("docker stop $docker_name");
+    }
+    else {
+        print "It appears that $docker_name is NOT running\n";
+    }
+}
+
 
 sub connect_to {
     my $image_name  = get_name();
