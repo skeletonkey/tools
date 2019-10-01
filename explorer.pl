@@ -33,7 +33,9 @@ exec
 
 daemon
     Basically does: docker run -d --rm --name my_<docker name> -v <dir>/code:/code <docker name>
-    
+
+logs
+    Follow the logs of the current container
 
 run [view] [additional run options]
     runs your docker (docker image name is the parent directory) mounting the code directory
@@ -57,6 +59,7 @@ if    ($cmd eq 'create') { create();                }
 elsif ($cmd eq 'build')  { build();                 }
 elsif ($cmd eq 'exec')   { connect_to();            }
 elsif ($cmd eq 'daemon') { daemon();                }
+elsif ($cmd eq 'logs')   { logs();                  }
 elsif ($cmd eq 'run')    { run();                   }
 elsif ($cmd eq 'stop')   { stop();                  }
 else  { die "Unrecognized command!\n" . usage() . "\n"; }
@@ -146,6 +149,13 @@ sub daemon {
 
     my $extra_args = @ARGV ? join(' ' , @ARGV) : '';
     system("docker run -d --rm $extra_args --name $docker_name -v $ENV{PWD}/code:/code $image_name");
+}
+
+sub logs {
+    my $image_name  = get_name();
+    my $docker_name = "my_$image_name";
+
+    system("docker logs --follow $docker_name");
 }
 
 sub get_name {
