@@ -111,12 +111,13 @@ sub run {
     my $image_name  = get_name();
     my $docker_name = "my_$image_name";
 
+    my $pwd = get_pwd();
     if (@ARGV == 1 && $ARGV[0] eq 'view') {
-        print("docker run -it --rm --name $docker_name -v $ENV{PWD}/code:/code $image_name /bin/bash\n");
+        print("docker run -it --rm --name $docker_name -v $pwd/code:/code $image_name /bin/bash\n");
     }
     else {
         my $extra_args = @ARGV ? join(' ' , @ARGV) : '';
-        system("docker run -it --rm $extra_args --name $docker_name -v $ENV{PWD}/code:/code $image_name /bin/bash");
+        system("docker run -it --rm $extra_args --name $docker_name -v $pwd/code:/code $image_name /bin/bash");
     }
 }
 
@@ -147,8 +148,10 @@ sub daemon {
     my $image_name  = get_name();
     my $docker_name = "my_$image_name";
 
+    my $pwd = get_pwd();
+
     my $extra_args = @ARGV ? join(' ' , @ARGV) : '';
-    system("docker run -d --rm $extra_args --name $docker_name -v $ENV{PWD}/code:/code $image_name");
+    system("docker run -d --rm $extra_args --name $docker_name -v $pwd/code:/code $image_name");
 }
 
 sub logs {
@@ -159,9 +162,19 @@ sub logs {
 }
 
 sub get_name {
-    my $path = $ENV{PWD} || die("No PWD environmental information found\n");
+    my $path = get_pwd() || die("Unable to determine the current working directory\n");
     my @parts = split(/$path_sep/, $path);
     return lc($parts[-1]);
+}
+
+sub get_pwd {
+    if (exists($ENV{PWD})) {
+        return $ENV{PWD};
+    }
+    else {
+        chomp(my $path = `pwd`);
+        return $path;
+    }
 }
 
 __DATA__
