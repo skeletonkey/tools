@@ -95,7 +95,7 @@ sub create {
 
     open(my $fh, '>', "$name$path_sep$docker_file") || die("Unable to open file ($name$path_sep$docker_file) for write: $!\n");
     print $fh "FROM $from\n";
-    print $fh "MAINTAINER $maintainer\n\n";
+    print $fh "LABEL MAINTAINER="$maintainer"\n\n";
     while (my $line = <DATA>) {
         print $fh $line;
     }
