@@ -13,6 +13,7 @@ This is a shortcut for quick learning using Docker to isolate your system.
 
 ENVIRONMENTAL VARIABLES:
     EXPLORER_MAINTAINER - if present it will use this as the MAINTAINER unless command line arg given
+    EXPLORER_RUN_OR_EXEC - if set to truthy cause 'run' to 'exec' if the container is already running
 
 create <name> [docker image] [maintainer]
     Will create a directory structure and a Dockerfile 'stub'
@@ -116,9 +117,30 @@ sub run {
         print("docker run -it --rm --name $docker_name -v $pwd/code:/code $image_name /bin/bash\n");
     }
     else {
-        my $extra_args = @ARGV ? join(' ' , @ARGV) : '';
-        system("docker run -it --rm $extra_args --name $docker_name -v $pwd/code:/code $image_name /bin/bash");
+        if (!$ENV{EXPLORER_RUN_OR_EXEC}) {
+            _run($docker_name, $pwd, $image_name);
+        }
+        else {
+            my $already_running = `docker ps | grep $docker_name | wc -l`;
+            chomp($already_running);
+            $already_running =~ s/ //g;
+            if ($already_running) {
+                connect_to();
+            }
+            else {
+                _run($docker_name, $pwd, $image_name);
+            }
+        }
     }
+}
+
+sub _run() {
+    my $_docker_name = shift;
+    my $_pwd = shift;
+    my $_image_name = shift;
+
+    my $extra_args = @ARGV ? join(' ' , @ARGV) : '';
+    system("docker run -it --rm $extra_args --name $_docker_name -v $_pwd/code:/code $_image_name /bin/bash");
 }
 
 sub stop {
